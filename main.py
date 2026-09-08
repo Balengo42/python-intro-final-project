@@ -1,13 +1,13 @@
 import requests
 import argparse
 
-API_URL = "https://openlibrary.org/search.json?author=tolkien"  # Replace with your chosen API endpoint
+API_URL = "https://openlibrary.org/search.json"  # Replace with your chosen API endpoint
 
 
-def fetch_data():
+def fetch_data(author):
     """Fetch data from the API. Returns the raw JSON response, or an empty list on failure."""
     try:
-        response = requests.get(API_URL)
+        response = requests.get(API_URL, params= {"author":author})
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -49,24 +49,35 @@ def display_results(results, show_edition = False):
 
 
 def main():
-    parser = argparse.ArgumentParser(description= "Query library data by year.")
-    parser.add_argument("year", help = "Year to filter by (e.g., 1993)")
+    parser = argparse.ArgumentParser(description= "Search library data by author.")
+    parser.add_argument("--author", help = "Author to search for")
+
     args = parser.parse_args()
-    if not args.year.isdigit():
-        print("Please enter a valid year.")
-        return
+    if args.author:
+        author = args.author
+    else:
+        author = input("Enter an author:").strip()
 
 
-    data = fetch_data()
+    data = fetch_data(author)
     if not data:
         return
-    
-    records = process_data(data)
-    results= [r for r in records if str(r["year"]) == args.year]
-
 
     query = input("Do you want to know the edition(s) of the book(s) too? (yes/no):").strip().lower()
     display_results(results, show_edition= query == "yes")
+
+
+
+""" if not args.year.isdigit():
+print("Please enter a valid year.")
+return"""
+
+
+"""records = process_data(data)
+results= [r for r in records if str(r["year"]) == args.year]"""
+
+
+    
 
 
 if __name__ == "__main__":
