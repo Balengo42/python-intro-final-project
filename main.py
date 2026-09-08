@@ -1,7 +1,7 @@
 import requests
 import argparse
 
-API_URL = "https://openlibrary.org/search.json?author=tolkien" 
+API_URL = "https://openlibrary.org/search.json?author=tolkien"  # Replace with your chosen API endpoint
 
 
 def fetch_data():
@@ -21,51 +21,27 @@ def process_data(data):
     result = []
     for record in records:
         result.append({
-           "title": record.get("title", "Unknown"),
+            "title": record.get("title", "Unknown"),
             "author": record.get("author_name", ["Unknown"])[0],
             "year": record.get("first_publish_year", "Unknown"),
-            "language": record.get("language", ["Unknown"]),
-            "edition": record.get("edition_count", "Unknown"), 
-        })
-    return result
+            "language": record.get ("language", ["Unknown"]),
+            "edition": record.get("edition_count", "Unknown"),
+            })
+        return result 
 
-def display_results(results, show_edition=False):
+
+def display_results(results):
     """Print results to the terminal in a readable format."""
-    if not results:
-        print("No results found.")
-        return
-
-    print(f"\n{len(results)} results found:")
-    print("-" * 40)
-    for record in results:
-        print(f"Title: {record['title']}")
-        print(f"Author: {record['author']}")
-        print(f"Year: {record['year']}")
-        print(f"Language: {record['language']}")
-        if show_edition:
-            print(f"Edition: {record['edition']}")
-        print("-" * 40)
+    pass
 
 
 def main():
-    parser = argparse.ArgumentParser(description= "Query library data by year.")
-    parser.add_argument("year", help= "Library to filter by (e.g., 1993)")
-    args = parser.parse_args()
-    while not args.year.isdigit():
-        print("Please enter a valid year.")
-        return
-
     data = fetch_data()
-    records = process_data(data)
-    results = [r for r in records if str(r["year"]) == args.year] 
-
-    if not records:
-        print("No data returned")
+    if not data:
         return
-    
-    query = input("Do you want to know the edition(s) too? (yes/no): ").strip().lower()
-    display_results(results, show_edition=query == "yes")
 
+    records = process_data(data)
+    display_results(records)
 
 
 if __name__ == "__main__":
