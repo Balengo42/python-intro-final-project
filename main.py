@@ -49,12 +49,27 @@ def display_results(results, show_edition = False):
 
 
 def main():
-    data = fetch_data()
-    if not data:
+    parser = argparse.ArgumentParser(description= "Query library data by year.")
+    parser.add_argument("year", help = "Year to filter by (e.g., 1993)")
+    args = parser.parse_args()
+    if not args.year.isdigit():
+        print("Please enter a valid year.")
         return
 
+
+    data = fetch_data()
     records = process_data(data)
-    display_results(records)
+    results= [r for r in records if str(r["year"]) == args.year]
+
+
+    if not records:
+        print("No data returned")
+        return
+
+    query = input("Do you want to know the edition(s) of the book(s) too? (yes/no):").strip().lower()
+
+    
+    display_results(results, show_edition= query == "yes")
 
 
 if __name__ == "__main__":
