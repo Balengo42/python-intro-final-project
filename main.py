@@ -27,7 +27,7 @@ def process_data(data):
             "language": record.get ("language", ["Unknown"]),
             "edition": record.get("edition_count", "Unknown"),
             })
-        return result 
+    return result 
 
 
 def display_results(results, show_edition = False):
@@ -42,7 +42,7 @@ def display_results(results, show_edition = False):
         print(f"Title: {record['title']}")
         print(f"Author: {record['author']}")
         print(f"year: {record['year']}")
-        print(f"Language: {record["language"]}")
+        print(f"Language: {record['language']}")
         if show_edition:
             print(f"Edition: {record['edition']}")
         print("-" * 40)
@@ -58,17 +58,14 @@ def main():
 
 
     data = fetch_data()
+    if not data:
+        return
+    
     records = process_data(data)
     results= [r for r in records if str(r["year"]) == args.year]
 
 
-    if not records:
-        print("No data returned")
-        return
-
     query = input("Do you want to know the edition(s) of the book(s) too? (yes/no):").strip().lower()
-
-    
     display_results(results, show_edition= query == "yes")
 
 
