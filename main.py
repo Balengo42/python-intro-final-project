@@ -26,6 +26,7 @@ def process_data(data):
             "year": record.get("first_publish_year", "Unknown"),
             "language": record.get ("language", ["Unknown"]),
             "edition": record.get("edition_count", "Unknown"),
+            "key": record.get("key", "Unknown")
             })
     return result 
 
@@ -43,6 +44,7 @@ def display_results(results, show_edition = False):
         print(f"Author: {record['author']}")
         print(f"year: {record['year']}")
         print(f"Language: {record['language']}")
+        print(f"Link to book: https://openlibrary.org{record['key']}/")
         if show_edition:
             print(f"Edition: {record['edition']}")
         print("-" * 40)
@@ -53,32 +55,30 @@ def main():
     parser.add_argument("--author", help = "Author to search for")
 
     args = parser.parse_args()
+
     if args.author:
-        author = args.author
+        author = str(args.author)
     else:
         author = input("Enter an author:").strip()
 
+    while not author:
+        print("Please enter an author")
+        author = input("Enter an author:").strip()
+
+    while True:
+        year = input("Enter a year to filter by (e.g, 1993):").strip()
+        if year.isdigit():
+         break
+        print("Please enter a valid year using numbers only.")
 
     data = fetch_data(author)
     if not data:
         return
 
+    records = process_data(data)
+    results= [r for r in records if str(r["year"]) == year]
     query = input("Do you want to know the edition(s) of the book(s) too? (yes/no):").strip().lower()
     display_results(results, show_edition= query == "yes")
-
-
-
-""" if not args.year.isdigit():
-print("Please enter a valid year.")
-return"""
-
-
-"""records = process_data(data)
-results= [r for r in records if str(r["year"]) == args.year]"""
-
-
-    
-
 
 if __name__ == "__main__":
     main()
