@@ -30,9 +30,22 @@ def process_data(data):
         return result 
 
 
-def display_results(results):
+def display_results(results, show_edition = False):
     """Print results to the terminal in a readable format."""
-    pass
+    if not results:
+        print("No results found.")
+        return
+
+    print(f"\n{len(results)} results found:")
+    print("-" * 40)
+    for record in results:
+        print(f"Title: {record['title']}")
+        print(f"Author: {record['author']}")
+        print(f"year: {record['year']}")
+        print(f"Language: {record["language"]}")
+        if show_edition:
+            print(f"Edition: {record['edition']}")
+        print("-" * 40)
 
 
 def main():
