@@ -1,13 +1,17 @@
 import requests
 import argparse
 
-API_URL = "https://openlibrary.org/search.json"  # Replace with your chosen API endpoint
+API_URL = "https://openlibrary.org/search.json" 
 
 
 def fetch_data(author):
     """Fetch data from the API. Returns the raw JSON response, or an empty list on failure."""
     try:
-        response = requests.get(API_URL, params= {"author":author})
+        params = {
+            "author": author,
+            "fields": "title,author_name,first_publish_year,language,edition_count,key"
+        }
+        response = requests.get(API_URL, params=params)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -22,7 +26,7 @@ def process_data(data):
     for record in records:
         result.append({
             "title": record.get("title", "Unknown"),
-            "author": record.get("author_name", ["Unknown"])[0],
+            "author": record.get("author_name", ["Unknown"])[0:],
             "year": record.get("first_publish_year", "Unknown"),
             "language": record.get ("language", ["Unknown"]),
             "edition": record.get("edition_count", "Unknown"),
@@ -65,20 +69,33 @@ def main():
         print("Please enter an author")
         author = input("Enter an author:").strip()
 
+    data = fetch_data(author)
+    if not data:
+        return
+
+    records = process_data(data)
+    
     while True:
         year = input("Enter a year to filter by (e.g, 1993):").strip()
         if year.isdigit():
          break
         print("Please enter a valid year using numbers only.")
 
-    data = fetch_data(author)
-    if not data:
+    results= [r for r in records if str(r["year"]) == year]
+    if not results:
+        print(f"No books found by {author} publisehd in {year}.")
         return
 
-    records = process_data(data)
-    results= [r for r in records if str(r["year"]) == year]
-    query = input("Do you want to know the edition(s) of the book(s) too? (yes/no):").strip().lower()
-    display_results(results, show_edition= query == "yes")
+    while True:
+        query = input("Do you want to know the edition(s) of the book(s) too? (yes/no):").strip().lower()
+        if query == "yes":
+            display_results(results, show_edition= query == "yes")
+            break
+        elif query == "no":
+            display_results(results, show_edition=False)
+            break
+        else:
+            print("Please enter yes or no.")
 
 if __name__ == "__main__":
     main()
