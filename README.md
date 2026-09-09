@@ -1,10 +1,9 @@
-# [Project Title]
+# [Book Search by Author & Year]ls
 
-A brief one- or two-sentence description of what this program does.
-
+What this program does is the user can fetch a book based on the author they put and year. Also, are asked if they want to know the editions of the books. 
 ## API
 
-This project uses the [API Name](https://api-url-here.com) API.
+This project uses the https://openlibrary.org/search.json API.
 
 ## Installation
 
@@ -32,7 +31,7 @@ This project uses the [API Name](https://api-url-here.com) API.
 python main.py
 ```
 
-Describe what happens when the program runs — what prompt(s) appear and what the user can do.
+The user is prompted by asking them a name of an author, and then a year. Which is followed up by if they want to know the edition of the books that may appear.
 
 ## CLI Interactions
 
@@ -40,3 +39,4 @@ Describe each interaction your CLI supports. For example:
 
 - **Filter by region** — enter a region name to see all matching records
 - **Look up by name** — enter a name to see details for one specific record
+The CLI, allows it to filter by author name and year that its published. 
