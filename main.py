@@ -37,27 +37,44 @@ def process_data(data):
             })
     return result 
 
-def subject_by_year(records):
-    """ Count how many times each subject appears per publication year."""
-    subjects_by_year = []
+def subject_by_year(records, start_year, number_of_years =5):
+    """ Find the most common subject for each year within a 5 year range from year selected"""
+    subjects_by_year = {}
 
+    for year in range(start_year, start_year + number_of_years):
+        subjects_by_year[year] = Counter()
+        
     for book in records:
-        year = book["year"]
-        subjects = book["subject"]
+        year= book["year"]
 
-        if year not in subjects_by_year:
-            subjects_by_year[year] = Counter()
+        if not isinstance(year,int):
+            continue
 
-        subjects_by_year[year][subjects] += 1
+        if start_year <= year <= start_year + number_of_years:
+            subjects = book["subject"]
 
-    top_subject_by_year = []
+        if isinstance(subjects,list):
+            for subject in subjects:
+                subjects_by_year[year][subject] += 1
+
+    top_subject_by_year = {}
 
     for year, subject_counts in subjects_by_year.items():
         if subject_counts:
-            subject_by_year[year] = subject_counts.most_common(1)[0]
+            top_subject, count = subject_counts.most_common(1)[0]
+
+            top_subject_by_year[year] = {
+                "subject": top_subject,
+                "count": count
+            }
 
     return top_subject_by_year
     
+def subject_plot(subject_data, start_year):
+    """Creating a bar plot to show the most common subject for each year"""
+    if not subject_data:
+        print
+
 
 
 def display_results(results, show_edition = False):
@@ -122,7 +139,11 @@ def main():
         else:
             print("Please enter yes or no.")
 
-    
+
+    subject_data = subject_by_year(records)
+    if not subject_data:
+        print("No subject data available.")
+        return
 
 
     
