@@ -1,15 +1,17 @@
 import requests
 import argparse
+import matplotlib.pyplot as plt 
+from collections import Counter
+
 
 API_URL = "https://openlibrary.org/search.json" 
-
 
 def fetch_data(author):
     """Fetch data from the API. Returns the raw JSON response, or an empty list on failure."""
     try:
         params = {
             "author": author,
-            "fields": "title,author_name,first_publish_year,language,edition_count,key"
+            "fields": "title,author_name,first_publish_year,language,edition_count,key,subject"
         }
         response = requests.get(API_URL, params=params)
         response.raise_for_status()
@@ -26,13 +28,36 @@ def process_data(data):
     for record in records:
         result.append({
             "title": record.get("title", "Unknown"),
-            "author": record.get("author_name", ["Unknown"])[0:],
+            "author": record.get("author_name", "Unknown")[0:],
             "year": record.get("first_publish_year", "Unknown"),
-            "language": record.get ("language", ["Unknown"]),
+            "language": record.get ("language", "Unknown"),
             "edition": record.get("edition_count", "Unknown"),
-            "key": record.get("key", "Unknown")
+            "key": record.get("key", "Unknown"),
+            "subject": record.get("subject", []),
             })
     return result 
+
+def subject_by_year(records):
+    """ Count how many times each subject appears per publication year."""
+    subjects_by_year = []
+
+    for book in records:
+        year = book["year"]
+        subjects = book["subject"]
+
+        if year not in subjects_by_year:
+            subjects_by_year[year] = Counter()
+
+        subjects_by_year[year][subjects] += 1
+
+    top_subject_by_year = []
+
+    for year, subject_counts in subjects_by_year.items():
+        if subject_counts:
+            subject_by_year[year] = subject_counts.most_common(1)[0]
+
+    return top_subject_by_year
+    
 
 
 def display_results(results, show_edition = False):
@@ -83,7 +108,7 @@ def main():
 
     results= [r for r in records if str(r["year"]) == year]
     if not results:
-        print(f"No books found by {author} publisehd in {year}.")
+        print(f"No books found by {author} published in {year}.")
         return
 
     while True:
@@ -97,5 +122,10 @@ def main():
         else:
             print("Please enter yes or no.")
 
+    
+
+
+    
+
 if __name__ == "__main__":
-    main()
+    main() 
