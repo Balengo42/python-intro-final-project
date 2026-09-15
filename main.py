@@ -3,8 +3,14 @@ import argparse
 import matplotlib.pyplot as plt 
 from collections import Counter
 
-
 API_URL = "https://openlibrary.org/search.json" 
+Known_subjects= ["Romance", "Fiction","Literature" "Fantasy", "Action", "Adventure", "Comedy", "Historical", 
+"Historical Fiction","Science Fiction", "Thriller", "Mystery", "Horror", "Biography","Autobiography", "History",
+"Self-help", "Poetry", "Children's Literature", "Young Adult", "Literary Fiction", "Non-fiction", "Graphic Novel", "Short Story",
+"Drama", "Satire", "Crime", "Dystopian", "Memoir", "Classic", "Paranormal", "Western", "War",
+"Political Fiction", "Science", "Philosophy", "Religion", "Spirituality", "Travel", "Art", "Music", "Food and Drink"]
+
+Known_subjects_lower = {g.lower() for g in Known_subjects}
 
 def fetch_data(author):
     """Fetch data from the API. Returns the raw JSON response, or an empty list on failure."""
@@ -21,11 +27,20 @@ def fetch_data(author):
         return []
 
 
+def filter_subjects(subjects):
+    """Filter subjects to only known subjects."""
+    if not isinstance(subjects, list):
+        return ["Unknown"]
+
+    filtered_subjects = [subject for subject in subjects if isinstance(subject, str) and subject.lower() in Known_subjects_lower]
+    
+    return filtered_subjects if filtered_subjects else ["Unknown"]
+
+
 def process_data(data):
     """Extract and transform the fields you need. Returns a list of dictionaries."""
     records = data.get("docs", [])
     result = []
-    genre = ["Fantasy", "Action", "Adventure", "Comedy", "Historical", "Romance", "Science Fiction", "Thriller", "Mystery", "Horror", "Biography", "Self-help", "Poetry", "Children's Literature", "Young Adult"]
     for record in records:
         result.append({
             "title": record.get("title", "Unknown"),
@@ -34,7 +49,7 @@ def process_data(data):
             "language": record.get ("language", "Unknown"),
             "edition": record.get("edition_count", "Unknown"),
             "key": record.get("key", "Unknown"),
-            "subject": record.get("subject", [genre[0:]] if genre else "Unknown"),
+            "subject": filter_subjects(record.get("subject", []))
             })
     return result 
 
@@ -112,6 +127,7 @@ def subject_plot(subject_data, start_year):
     )
     plt.xticks(plot_years)
     plt.tight_layout()
+    plt.savefig("subject_plot.png")
     plt.show()
 
 
@@ -126,7 +142,7 @@ def display_results(results, show_edition = False):
     for record in results:
         print(f"Title: {record['title']}")
         print(f"Author: {record['author']}")
-        print(f"Subject: {record['subject']}")
+        print(f"Subject: {', '.join(record['subject'])}")
         print(f"Year: {record['year']}")
         print(f"Language: {record['language']}")
         print(f"Link to book: https://openlibrary.org{record['key']}/")
