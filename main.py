@@ -25,6 +25,7 @@ def process_data(data):
     """Extract and transform the fields you need. Returns a list of dictionaries."""
     records = data.get("docs", [])
     result = []
+    genre = ["Fantasy", "Action", "Adventure", "Comedy", "Historical", "Romance", "Science Fiction", "Thriller", "Mystery", "Horror", "Biography", "Self-help", "Poetry", "Children's Literature", "Young Adult"]
     for record in records:
         result.append({
             "title": record.get("title", "Unknown"),
@@ -33,7 +34,7 @@ def process_data(data):
             "language": record.get ("language", "Unknown"),
             "edition": record.get("edition_count", "Unknown"),
             "key": record.get("key", "Unknown"),
-            "subject": record.get("subject", []),
+            "subject": record.get("subject", [genre[0:]] if genre else "Unknown"),
             })
     return result 
 
@@ -43,19 +44,18 @@ def subject_by_year(records, start_year, number_of_years =5):
 
     for year in range(start_year, start_year + number_of_years):
         subjects_by_year[year] = Counter()
-        
+
     for book in records:
         year= book["year"]
 
         if not isinstance(year,int):
             continue
 
-        if start_year <= year <= start_year + number_of_years:
+        if start_year <= year < start_year + number_of_years:
             subjects = book["subject"]
-
-        if isinstance(subjects,list):
-            for subject in subjects:
-                subjects_by_year[year][subject] += 1
+            if isinstance(subjects,list):
+                for subject in subjects:
+                    subjects_by_year[year][subject] += 1
 
     top_subject_by_year = {}
 
@@ -73,8 +73,46 @@ def subject_by_year(records, start_year, number_of_years =5):
 def subject_plot(subject_data, start_year):
     """Creating a bar plot to show the most common subject for each year"""
     if not subject_data:
-        print
+        print("No subject data available.")
+        return
 
+    years = list(range(start_year, start_year +5))
+    plot_years = []
+    top_counts =[]
+    top_subjects = []
+
+    for year in years:
+        if year in subject_data:
+            plot_years.append(year)
+            top_counts.append(subject_data[year]["count"])
+            top_subjects.append(subject_data[year]["subject"])
+
+    if not plot_years:
+        print("No subject data available.")
+        return
+
+    plt.figure(figsize= (10,6))
+
+    bars = plt.bar(plot_years, top_counts)
+    plt.xlabel("Publication Year")
+    plt.ylabel("Number of Books")
+    plt.title(
+        f"Most common Subject by Year "
+        f"{start_year}- {start_year + 4}"
+    )
+    for bar,subject, count in zip(bars, top_subjects,top_counts):
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            count,
+            subject,
+            ha = "center",
+            va = "bottom",
+            rotation =45,
+            fontsize=9
+    )
+    plt.xticks(plot_years)
+    plt.tight_layout()
+    plt.show()
 
 
 def display_results(results, show_edition = False):
@@ -88,7 +126,8 @@ def display_results(results, show_edition = False):
     for record in results:
         print(f"Title: {record['title']}")
         print(f"Author: {record['author']}")
-        print(f"year: {record['year']}")
+        print(f"Subject: {record['subject']}")
+        print(f"Year: {record['year']}")
         print(f"Language: {record['language']}")
         print(f"Link to book: https://openlibrary.org{record['key']}/")
         if show_edition:
@@ -140,11 +179,13 @@ def main():
             print("Please enter yes or no.")
 
 
-    subject_data = subject_by_year(records)
-    if not subject_data:
-        print("No subject data available.")
-        return
+    subject_data = subject_by_year(
 
+        records,
+        int(year),
+        number_of_years =5
+    )
+    subject_plot(subject_data, int(year))
 
     
 
