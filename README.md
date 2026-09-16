@@ -50,4 +50,5 @@ In this project I choose Option A - Visual Analysis. In this trackI used matplot
 The visualization is a bar chart that with the entered author and year, we get to know which genre/subject was publsihed most often in the 5 year window starting from the year entered. 
 Each bar represents one year and its height shows how many books by that author published in that year, were of that genre named at top. Giving you an idea of what genre the author mostly publishes. Also a bar chart best fits this information since it gives an exact count and the bars themselves show the years easily. 
 
-# Video Explanation
+# Video 
+https://youtu.be/qw5WSAreRYo
