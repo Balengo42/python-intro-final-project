@@ -1,10 +1,11 @@
+import textwrap
 import requests
 import argparse
 import matplotlib.pyplot as plt 
 from collections import Counter
 
 API_URL = "https://openlibrary.org/search.json" 
-Known_subjects= ["Romance", "Fiction","Literature" "Fantasy", "Action", "Adventure", "Comedy", "Historical", 
+Known_subjects= ["Romance", "Fiction","Literature", "Fantasy", "Action", "Adventure", "Comedy", "Historical", 
 "Historical Fiction","Science Fiction", "Thriller", "Mystery", "Horror", "Biography","Autobiography", "History",
 "Self-help", "Poetry", "Children's Literature", "Young Adult", "Literary Fiction", "Non-fiction", "Graphic Novel", "Short Story",
 "Drama", "Satire", "Crime", "Dystopian", "Memoir", "Classic", "Paranormal", "Western", "War",
@@ -70,6 +71,8 @@ def subject_by_year(records, start_year, number_of_years =5):
             subjects = book["subject"]
             if isinstance(subjects,list):
                 for subject in subjects:
+                    if subject == "Unknown":
+                        continue
                     subjects_by_year[year][subject] += 1
 
     top_subject_by_year = {}
@@ -84,16 +87,12 @@ def subject_by_year(records, start_year, number_of_years =5):
             }
 
     return top_subject_by_year
-    
-def subject_plot(subject_data, start_year):
-    """Creating a bar plot to show the most common subject for each year"""
-    if not subject_data:
-        print("No subject data available.")
-        return
 
-    years = list(range(start_year, start_year +5))
+def prepare_plot_data(subject_data, start_year, number_of_years=5):
+    """Prepare data for plotting."""
+    years = list(range(start_year, start_year + number_of_years))
     plot_years = []
-    top_counts =[]
+    top_counts = []
     top_subjects = []
 
     for year in years:
@@ -102,33 +101,48 @@ def subject_plot(subject_data, start_year):
             top_counts.append(subject_data[year]["count"])
             top_subjects.append(subject_data[year]["subject"])
 
-    if not plot_years:
+    return{ "years": plot_years, "counts": top_counts, "subjects": top_subjects,}
+
+
+def build_subject_plot(plot_data, start_year, author, number_of_years=5):
+    """Build a bar plot to show the most common subject for each year."""
+    if not plot_data["years"]:
+        return None
+    end_year = start_year + number_of_years - 1
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bars = ax.bar(plot_data["years"], plot_data["counts"])
+
+    ax.set_xlabel("Publication Year")
+    ax.set_ylabel("Number of Books")
+    ax.set_title(f"Most Common Subject by Year for {author} ({start_year}-{end_year})")
+    ax.set_xticks(plot_data["years"])
+
+    ax.set_ylim(0, max(plot_data["counts"]) * 1.25)
+    for bar, subject, count in zip(bars, plot_data["subjects"], plot_data["counts"]):
+        label = "\n".join(textwrap.wrap(subject, width=14))
+        ax.text(bar.get_x() + bar.get_width() / 2, count, label, ha='center', va='bottom', rotation=0, fontsize=10)
+
+    fig.text(0.5, 0.01, "Each bar label is the genre of the most common subject in that year for this author", ha='center', fontsize=8)
+    fig.tight_layout(rect=[0, 0.04, 1, 1])
+
+    return fig 
+
+
+def subject_plot(subject_data, start_year, author, number_of_years=5):
+    """Prepare data and build the subject plot."""
+    plot_data = prepare_plot_data(subject_data, start_year, number_of_years)
+    if not plot_data["years"]:
         print("No subject data available.")
-        return
+        return None
+    fig = build_subject_plot(plot_data, start_year, author, number_of_years)
+    end_year = start_year + number_of_years - 1
+    filename = f"top_subject_by_year_{start_year}_{end_year}.png"
 
-    plt.figure(figsize= (10,6))
-
-    bars = plt.bar(plot_years, top_counts)
-    plt.xlabel("Publication Year")
-    plt.ylabel("Number of Books")
-    plt.title(
-        f"Most common Subject by Year "
-        f"{start_year}- {start_year + 4}"
-    )
-    for bar,subject, count in zip(bars, top_subjects,top_counts):
-        plt.text(
-            bar.get_x() + bar.get_width() / 2,
-            count,
-            subject,
-            ha = "center",
-            va = "bottom",
-            rotation =45,
-            fontsize=9
-    )
-    plt.xticks(plot_years)
-    plt.tight_layout()
-    plt.savefig("subject_plot.png")
+    fig.savefig(filename)
+    print(f"Plot saved as {filename}.")
     plt.show()
+
+    return filename
 
 
 def display_results(results, show_edition = False):
@@ -201,7 +215,7 @@ def main():
         int(year),
         number_of_years =5
     )
-    subject_plot(subject_data, int(year))
+    subject_plot(subject_data, int(year), author)
 
     
 
